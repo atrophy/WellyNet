@@ -1,5 +1,5 @@
 /*
-SoftwareSerialWithHalfDuplex.h (formerly SoftwareSerial.h) - 
+WellyNet.h (formerly SoftwareSerial.h) - 
 Multi-instance software serial with half duplex library for Arduino/Wiring
 
 By default the library works the same as the SoftwareSerial library, 
@@ -35,8 +35,8 @@ License along with this library; if not, write to the Free Software
 Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-#ifndef SoftwareSerialWithHalfDuplex_h
-#define SoftwareSerialWithHalfDuplex_h
+#ifndef WellyNet_h
+#define WellyNet_h
 
 #include <inttypes.h>
 #include <Stream.h>
@@ -50,7 +50,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #endif
 
-class SoftwareSerialWithHalfDuplex : public Stream
+class WellyNet : public Stream
 {
 private:
   // per object data
@@ -74,7 +74,7 @@ private:
   static char _receive_buffer[_SS_MAX_RX_BUFF]; 
   static volatile uint8_t _receive_buffer_tail;
   static volatile uint8_t _receive_buffer_head;
-  static SoftwareSerialWithHalfDuplex *active_object;
+  static WellyNet *active_object;
 
   // private methods
   void recv();
@@ -88,8 +88,8 @@ private:
 
 public:
   // public methods
-  SoftwareSerialWithHalfDuplex(uint8_t receivePin, uint8_t transmitPin, bool inverse_logic = false, bool full_duplex = true);
-  ~SoftwareSerialWithHalfDuplex();
+  WellyNet(uint8_t receivePin, uint8_t transmitPin, bool inverse_logic = false, bool full_duplex = true);
+  ~WellyNet();
   void begin(long speed);
   bool listen();
   void end();

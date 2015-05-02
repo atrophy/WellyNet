@@ -1,5 +1,5 @@
 /*
-SoftwareSerialWithHalfDuplex.cpp (formerly SoftwareSerial.cpp) - 
+WellyNet.cpp (formerly SoftwareSerial.cpp) - 
 Multi-instance software serial with half duplex library for Arduino/Wiring
 
 By default the library works the same as the SoftwareSerial library, but by adding a couple of additional arguments
@@ -42,7 +42,7 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #include <avr/interrupt.h>
 #include <avr/pgmspace.h>
 #include "Arduino.h"
-#include "SoftwareSerialWithHalfDuplex.h"
+#include "WellyNet.h"
 //
 // Lookup table
 //
@@ -123,17 +123,17 @@ const int XMIT_START_ADJUSTMENT = 6;
 
 #else
 
-#error This version of SoftwareSerialWithHalfDuplex supports only 20, 16 and 8MHz processors
+#error This version of WellyNet supports only 20, 16 and 8MHz processors
 
 #endif
 
 //
 // Statics
 //
-SoftwareSerialWithHalfDuplex *SoftwareSerialWithHalfDuplex::active_object = 0;
-char SoftwareSerialWithHalfDuplex::_receive_buffer[_SS_MAX_RX_BUFF]; 
-volatile uint8_t SoftwareSerialWithHalfDuplex::_receive_buffer_tail = 0;
-volatile uint8_t SoftwareSerialWithHalfDuplex::_receive_buffer_head = 0;
+WellyNet *WellyNet::active_object = 0;
+char WellyNet::_receive_buffer[_SS_MAX_RX_BUFF]; 
+volatile uint8_t WellyNet::_receive_buffer_tail = 0;
+volatile uint8_t WellyNet::_receive_buffer_head = 0;
 
 //
 // Debugging
@@ -159,7 +159,7 @@ inline void DebugPulse(uint8_t pin, uint8_t count)
 //
 
 /* static */ 
-inline void SoftwareSerialWithHalfDuplex::tunedDelay(uint16_t delay) { 
+inline void WellyNet::tunedDelay(uint16_t delay) { 
   uint8_t tmp=0;
 
   asm volatile("sbiw    %0, 0x01 \n\t"
@@ -174,7 +174,7 @@ inline void SoftwareSerialWithHalfDuplex::tunedDelay(uint16_t delay) {
 
 // This function sets the current object as the "listening"
 // one and returns true if it replaces another 
-bool SoftwareSerialWithHalfDuplex::listen()
+bool WellyNet::listen()
 {
   if (active_object != this)
   {
@@ -193,7 +193,7 @@ bool SoftwareSerialWithHalfDuplex::listen()
 //
 // The receive routine called by the interrupt handler
 //
-void SoftwareSerialWithHalfDuplex::recv()
+void WellyNet::recv()
 {
 
 #if GCC_VERSION < 40302
@@ -273,7 +273,7 @@ void SoftwareSerialWithHalfDuplex::recv()
 #endif
 }
 
-void SoftwareSerialWithHalfDuplex::tx_pin_write(uint8_t pin_state)
+void WellyNet::tx_pin_write(uint8_t pin_state)
 {
   if (pin_state == LOW)
     *_transmitPortRegister &= ~_transmitBitMask;
@@ -281,7 +281,7 @@ void SoftwareSerialWithHalfDuplex::tx_pin_write(uint8_t pin_state)
     *_transmitPortRegister |= _transmitBitMask;
 }
 
-uint8_t SoftwareSerialWithHalfDuplex::rx_pin_read()
+uint8_t WellyNet::rx_pin_read()
 {
   return *_receivePortRegister & _receiveBitMask;
 }
@@ -291,7 +291,7 @@ uint8_t SoftwareSerialWithHalfDuplex::rx_pin_read()
 //
 
 /* static */
-inline void SoftwareSerialWithHalfDuplex::handle_interrupt()
+inline void WellyNet::handle_interrupt()
 {
   if (active_object)
   {
@@ -302,35 +302,35 @@ inline void SoftwareSerialWithHalfDuplex::handle_interrupt()
 #if defined(PCINT0_vect)
 ISR(PCINT0_vect)
 {
-  SoftwareSerialWithHalfDuplex::handle_interrupt();
+  WellyNet::handle_interrupt();
 }
 #endif
 
 #if defined(PCINT1_vect)
 ISR(PCINT1_vect)
 {
-  SoftwareSerialWithHalfDuplex::handle_interrupt();
+  WellyNet::handle_interrupt();
 }
 #endif
 
 #if defined(PCINT2_vect)
 ISR(PCINT2_vect)
 {
-  SoftwareSerialWithHalfDuplex::handle_interrupt();
+  WellyNet::handle_interrupt();
 }
 #endif
 
 #if defined(PCINT3_vect)
 ISR(PCINT3_vect)
 {
-  SoftwareSerialWithHalfDuplex::handle_interrupt();
+  WellyNet::handle_interrupt();
 }
 #endif
 
 //
 // Constructor
 //
-SoftwareSerialWithHalfDuplex::SoftwareSerialWithHalfDuplex(uint8_t receivePin, uint8_t transmitPin, bool inverse_logic /* = false */, bool full_duplex /* = true */) : 
+WellyNet::WellyNet(uint8_t receivePin, uint8_t transmitPin, bool inverse_logic /* = false */, bool full_duplex /* = true */) : 
   _rx_delay_centering(0),
   _rx_delay_intrabit(0),
   _rx_delay_stopbit(0),
@@ -346,12 +346,12 @@ SoftwareSerialWithHalfDuplex::SoftwareSerialWithHalfDuplex(uint8_t receivePin, u
 //
 // Destructor
 //
-SoftwareSerialWithHalfDuplex::~SoftwareSerialWithHalfDuplex()
+WellyNet::~WellyNet()
 {
   end();
 }
 
-void SoftwareSerialWithHalfDuplex::setTX(uint8_t tx)
+void WellyNet::setTX(uint8_t tx)
 {
   if(_full_duplex)											//NS Added
 	  pinMode(tx, OUTPUT);
@@ -363,7 +363,7 @@ void SoftwareSerialWithHalfDuplex::setTX(uint8_t tx)
   _transmitPortRegister = portOutputRegister(port);
 }
 
-void SoftwareSerialWithHalfDuplex::setRX(uint8_t rx)
+void WellyNet::setRX(uint8_t rx)
 {
   pinMode(rx, INPUT);
   if (!_inverse_logic)
@@ -378,7 +378,7 @@ void SoftwareSerialWithHalfDuplex::setRX(uint8_t rx)
 // Public methods
 //
 
-void SoftwareSerialWithHalfDuplex::begin(long speed)
+void WellyNet::begin(long speed)
 {
   _rx_delay_centering = _rx_delay_intrabit = _rx_delay_stopbit = _tx_delay = 0;
 
@@ -414,7 +414,7 @@ void SoftwareSerialWithHalfDuplex::begin(long speed)
   listen();
 }
 
-void SoftwareSerialWithHalfDuplex::end()
+void WellyNet::end()
 {
   if (digitalPinToPCMSK(_receivePin))
     *digitalPinToPCMSK(_receivePin) &= ~_BV(digitalPinToPCMSKbit(_receivePin));
@@ -422,7 +422,7 @@ void SoftwareSerialWithHalfDuplex::end()
 
 
 // Read data from buffer
-int SoftwareSerialWithHalfDuplex::read()
+int WellyNet::read()
 {
   if (!isListening())
     return -1;
@@ -437,7 +437,7 @@ int SoftwareSerialWithHalfDuplex::read()
   return d;
 }
 
-int SoftwareSerialWithHalfDuplex::available()
+int WellyNet::available()
 {
   if (!isListening())
     return 0;
@@ -445,7 +445,7 @@ int SoftwareSerialWithHalfDuplex::available()
   return (_receive_buffer_tail + _SS_MAX_RX_BUFF - _receive_buffer_head) % _SS_MAX_RX_BUFF;
 }
 
-size_t SoftwareSerialWithHalfDuplex::write(uint8_t b)
+size_t WellyNet::write(uint8_t b)
 {
   if (_tx_delay == 0) {
     setWriteError();
@@ -505,7 +505,7 @@ size_t SoftwareSerialWithHalfDuplex::write(uint8_t b)
   return 1;
 }
 
-void SoftwareSerialWithHalfDuplex::flush()
+void WellyNet::flush()
 {
   if (!isListening())
     return;
@@ -516,7 +516,7 @@ void SoftwareSerialWithHalfDuplex::flush()
   SREG = oldSREG;
 }
 
-int SoftwareSerialWithHalfDuplex::peek()
+int WellyNet::peek()
 {
   if (!isListening())
     return -1;
