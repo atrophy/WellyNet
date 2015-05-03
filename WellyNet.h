@@ -68,7 +68,21 @@ private:
 
   uint16_t _buffer_overflow:1;
   uint16_t _inverse_logic:1;
-  uint16_t _full_duplex:1;							//NS Added
+
+  uint8_t _address;
+
+  /* WellyNet Command Buffer
+  Each packet can be up to 21 bytes
+  First 3 bytes are the header, Destination, Source & Message Length
+  Next 2 bytes are the message type and identifier
+  Any further bytes are the optional payload up to 16 bytes.
+  */
+
+  static uint8_t _command_buffer[5][255];
+  static volatile uint8_t _command_byte_position;
+  static volatile uint8_t _command_buffer_position;
+  static volatile uint8_t _command_length;
+  static volatile uint8_t _last_command_read;
 
   // static data
   static char _receive_buffer[_SS_MAX_RX_BUFF]; 
@@ -88,7 +102,7 @@ private:
 
 public:
   // public methods
-  WellyNet(uint8_t receivePin, uint8_t transmitPin, bool inverse_logic = false, bool full_duplex = true);
+  WellyNet(uint8_t commsPin, uint8_t address, bool inverse_logic = false);
   ~WellyNet();
   void begin(long speed);
   bool listen();

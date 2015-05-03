@@ -135,6 +135,12 @@ char WellyNet::_receive_buffer[_SS_MAX_RX_BUFF];
 volatile uint8_t WellyNet::_receive_buffer_tail = 0;
 volatile uint8_t WellyNet::_receive_buffer_head = 0;
 
+uint8_t WellyNet::_command_buffer[5][255];
+volatile uint8_t WellyNet::_command_byte_position = 0;
+volatile uint8_t WellyNet::_command_buffer_position = 0;
+volatile uint8_t WellyNet::_command_length = 0;
+volatile uint8_t WellyNet::_last_command_read = 0;
+
 //
 // Debugging
 //
@@ -241,6 +247,56 @@ void WellyNet::recv()
     if (_inverse_logic)
       d = ~d;
 
+    /*
+      uint8_t _command_buffer[5][21];
+      uint8_t _command_byte_position = 0;
+      uint8_t _command_buffer_position = 0;
+      uint8_t _command_length = 0;
+      uint8_t _last_command_read = 0;
+    */
+
+    // Put the data in the WellyNet buffer
+
+    //If the message is still in the header portion
+    if (_command_byte_position < 3) 
+    {
+      //Read the byte into the command buffer
+      _command_buffer[_command_buffer_position][_command_byte_position] = d;
+      //and increment the byte position by 1
+      _command_byte_position++;
+    }
+    //Otherwise it must be in the main portion of the message
+    else
+    {
+      //If the byte position is still within the range defined by the length field ofthe header
+      if (_command_byte_position < (_command_buffer[_command_buffer_position][2] + 3))
+      {
+        //and the header indicates that it is addressed to either us or the broadcast address
+        if (_command_buffer[_command_buffer_position][0] == _address || _command_buffer[_command_buffer_position][0] == 0x00)
+        {
+          //then read the data into the buffer
+          _command_buffer[_command_buffer_position][_command_byte_position] = d;
+          //and increment the byte position by 1
+          _command_byte_position++;
+        }
+        //if this was the last byte in the command
+        if (_command_byte_position == _command_buffer[_command_buffer_position][2] + 2)
+        {
+          //Increment the buffer position
+          if (_command_buffer_position == 4) { _command_buffer_position = 0; } else { _command_buffer_position++; }
+        }
+      }
+      // If the byte position is out of range then we can reset the byte position, if the last command was adressed to us then
+      // we'll have incremented the buffer position, if not we'll be overwriting the header from the last message.
+      else
+      {
+        _command_byte_position = 0;
+        _command_buffer[_command_buffer_position][_command_byte_position] = d;
+        _command_byte_position++;
+      }
+    }
+
+    /*
     // if buffer full, set the overflow flag and return
     if ((_receive_buffer_tail + 1) % _SS_MAX_RX_BUFF != _receive_buffer_head) 
     {
@@ -255,6 +311,7 @@ void WellyNet::recv()
 #endif
       _buffer_overflow = true;
     }
+    */
   }
 
 #if GCC_VERSION < 40302
@@ -330,17 +387,17 @@ ISR(PCINT3_vect)
 //
 // Constructor
 //
-WellyNet::WellyNet(uint8_t receivePin, uint8_t transmitPin, bool inverse_logic /* = false */, bool full_duplex /* = true */) : 
+WellyNet::WellyNet(uint8_t commPin, uint8_t address, bool inverse_logic /* = false */) : 
   _rx_delay_centering(0),
   _rx_delay_intrabit(0),
   _rx_delay_stopbit(0),
   _tx_delay(0),
   _buffer_overflow(false),
   _inverse_logic(inverse_logic),
-  _full_duplex(full_duplex)									//NS Added
+  _address(address)
 {
-  setTX(transmitPin);
-  setRX(receivePin);
+  setTX(commPin);
+  setRX(commPin);
 }
 
 //
@@ -353,9 +410,6 @@ WellyNet::~WellyNet()
 
 void WellyNet::setTX(uint8_t tx)
 {
-  if(_full_duplex)											//NS Added
-	  pinMode(tx, OUTPUT);
-  else pinMode(tx, INPUT);									//NS Added
   _transmitPin = tx;  										//NS Added  
   digitalWrite(tx, HIGH);
   _transmitBitMask = digitalPinToBitMask(tx);
@@ -420,7 +474,6 @@ void WellyNet::end()
     *digitalPinToPCMSK(_receivePin) &= ~_BV(digitalPinToPCMSKbit(_receivePin));
 }
 
-
 // Read data from buffer
 int WellyNet::read()
 {
@@ -456,8 +509,7 @@ size_t WellyNet::write(uint8_t b)
   cli();  // turn off interrupts for a clean txmit
   
   // NS - Set Pin to Output
-  if(!_full_duplex)															//NS Added
-	  pinMode(_transmitPin, OUTPUT);										//NS Added    
+	pinMode(_transmitPin, OUTPUT);										//NS Added    
 
   // Write the start bit
   tx_pin_write(_inverse_logic ? HIGH : LOW);
@@ -494,10 +546,8 @@ size_t WellyNet::write(uint8_t b)
   }
   
   // NS - Set Pin back to Input
-  if(!_full_duplex){														//NS Added
-	  pinMode(_transmitPin, INPUT);											//NS Added 
-	  tx_pin_write(HIGH); 													//NS Added   
-  }
+	pinMode(_transmitPin, INPUT);											//NS Added 
+	tx_pin_write(HIGH); 													//NS Added   
   
   SREG = oldSREG; // turn interrupts back on
   tunedDelay(_tx_delay);
