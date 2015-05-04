@@ -6,10 +6,10 @@
 
 #include <WellyNet.h>
 
-#define COMM_PIN 4
+#define COM_PIN 4
 #define WN_ADDRESS 8
 
-WellyNet myWelly(COMM_PIN,WN_ADDRESS);
+WellyNet myWelly(COM_PIN,WN_ADDRESS);
 
 void setup(){
   myWelly.begin(9600);         // to connect with other devices
@@ -26,6 +26,3 @@ void loop(){
     myWelly.write(i);
   }
 }
-
-
-

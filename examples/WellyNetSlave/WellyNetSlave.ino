@@ -8,7 +8,7 @@
 #define COM_PIN 4
 #define WN_ADDRESS 6
 
-WellyNet myWelly(comPin,WN_ADDRESS);
+WellyNet myWelly(COM_PIN,WN_ADDRESS);
 
 void setup(){
   myWelly.begin(9600);
