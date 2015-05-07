@@ -134,13 +134,13 @@ WellyNet *WellyNet::active_object = 0;
 char WellyNet::_receive_buffer[_SS_MAX_RX_BUFF]; 
 volatile uint8_t WellyNet::_receive_buffer_tail = 0;
 volatile uint8_t WellyNet::_receive_buffer_head = 0;
-
+/*
 uint8_t WellyNet::_command_buffer[5][255];
 volatile uint8_t WellyNet::_command_byte_position = 0;
 volatile uint8_t WellyNet::_command_buffer_position = 0;
 volatile uint8_t WellyNet::_command_length = 0;
 volatile uint8_t WellyNet::_last_command_read = 0;
-
+*/
 //
 // Debugging
 //
@@ -254,7 +254,7 @@ void WellyNet::recv()
       uint8_t _command_length = 0;
       uint8_t _last_command_read = 0;
     */
-
+/*
     // Put the data in the WellyNet buffer
 
     //If the message is still in the header portion
@@ -295,8 +295,8 @@ void WellyNet::recv()
         _command_byte_position++;
       }
     }
-
-    /*
+*/
+  
     // if buffer full, set the overflow flag and return
     if ((_receive_buffer_tail + 1) % _SS_MAX_RX_BUFF != _receive_buffer_head) 
     {
@@ -311,7 +311,7 @@ void WellyNet::recv()
 #endif
       _buffer_overflow = true;
     }
-    */
+
   }
 
 #if GCC_VERSION < 40302

@@ -77,13 +77,13 @@ private:
   Next 2 bytes are the message type and identifier
   Any further bytes are the optional payload up to 16 bytes.
   */
-
+/*
   static uint8_t _command_buffer[5][255];
   static volatile uint8_t _command_byte_position;
   static volatile uint8_t _command_buffer_position;
   static volatile uint8_t _command_length;
   static volatile uint8_t _last_command_read;
-
+*/
   // static data
   static char _receive_buffer[_SS_MAX_RX_BUFF]; 
   static volatile uint8_t _receive_buffer_tail;
