@@ -518,7 +518,13 @@ int WellyNet::getPacket(int command[])
 {
   int bytesBuffered = available();
   int forMe = 0;
+
+  //Don't interrupt me!
+  uint8_t oldSREG = SREG;
+  cli();
+
   //Check if there's anything to read
+
   if (bytesBuffered >= 10)
   {
     //If there was, read the first byte (should be the destination address)
@@ -536,16 +542,18 @@ int WellyNet::getPacket(int command[])
         //And if it was addressed to us, put it into the command buffer
         command[i] = readByte;
       }
-      flush();
+      flush(); //This is not a good idea, I will do a proper buffer check & clear up to the next command later...
+      SREG = oldSREG;
       return(1);
     }
     else
     {
       flush();
+      SREG = oldSREG;
       return(0);
     }
   }
-  else { return(0); }
+  else { SREG = oldSREG; return(0); }
 }
 
 int WellyNet::checksumCalc(int command[])

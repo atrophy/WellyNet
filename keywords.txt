@@ -1,26 +1,27 @@
 #######################################
-# Syntax Coloring Map for NewSoftSerial
+# Syntax Coloring Map for WellyNet
 #######################################
 
 #######################################
 # Datatypes (KEYWORD1)
 #######################################
 
-WellyNet	KEYWORD1
+WellyNet		KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
 #######################################
 
-begin	KEYWORD2
-end	KEYWORD2
-read	KEYWORD2
-available	KEYWORD2
-isListening	KEYWORD2
-overflow	KEYWORD2
-flush	KEYWORD2
-listen	KEYWORD2
-packetsAvailable KEYWORD2
+begin			KEYWORD2
+end				KEYWORD2
+read			KEYWORD2
+available		KEYWORD2
+isListening		KEYWORD2
+overflow		KEYWORD2
+flush			KEYWORD2
+listen			KEYWORD2
+getPacket 		KEYWORD2
+checksumCalc 	KEYWORD2
 
 #######################################
 # Constants (LITERAL1)
