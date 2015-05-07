@@ -134,13 +134,7 @@ WellyNet *WellyNet::active_object = 0;
 char WellyNet::_receive_buffer[_SS_MAX_RX_BUFF]; 
 volatile uint8_t WellyNet::_receive_buffer_tail = 0;
 volatile uint8_t WellyNet::_receive_buffer_head = 0;
-/*
-uint8_t WellyNet::_command_buffer[5][255];
-volatile uint8_t WellyNet::_command_byte_position = 0;
-volatile uint8_t WellyNet::_command_buffer_position = 0;
-volatile uint8_t WellyNet::_command_length = 0;
-volatile uint8_t WellyNet::_last_command_read = 0;
-*/
+
 //
 // Debugging
 //
@@ -246,56 +240,6 @@ void WellyNet::recv()
 
     if (_inverse_logic)
       d = ~d;
-
-    /*
-      uint8_t _command_buffer[5][21];
-      uint8_t _command_byte_position = 0;
-      uint8_t _command_buffer_position = 0;
-      uint8_t _command_length = 0;
-      uint8_t _last_command_read = 0;
-    */
-/*
-    // Put the data in the WellyNet buffer
-
-    //If the message is still in the header portion
-    if (_command_byte_position < 3) 
-    {
-      //Read the byte into the command buffer
-      _command_buffer[_command_buffer_position][_command_byte_position] = d;
-      //and increment the byte position by 1
-      _command_byte_position++;
-    }
-    //Otherwise it must be in the main portion of the message
-    else
-    {
-      //If the byte position is still within the range defined by the length field ofthe header
-      if (_command_byte_position < (_command_buffer[_command_buffer_position][2] + 3))
-      {
-        //and the header indicates that it is addressed to either us or the broadcast address
-        if (_command_buffer[_command_buffer_position][0] == _address || _command_buffer[_command_buffer_position][0] == 0x00)
-        {
-          //then read the data into the buffer
-          _command_buffer[_command_buffer_position][_command_byte_position] = d;
-          //and increment the byte position by 1
-          _command_byte_position++;
-        }
-        //if this was the last byte in the command
-        if (_command_byte_position == _command_buffer[_command_buffer_position][2] + 2)
-        {
-          //Increment the buffer position
-          if (_command_buffer_position == 4) { _command_buffer_position = 0; } else { _command_buffer_position++; }
-        }
-      }
-      // If the byte position is out of range then we can reset the byte position, if the last command was adressed to us then
-      // we'll have incremented the buffer position, if not we'll be overwriting the header from the last message.
-      else
-      {
-        _command_byte_position = 0;
-        _command_buffer[_command_buffer_position][_command_byte_position] = d;
-        _command_byte_position++;
-      }
-    }
-*/
   
     // if buffer full, set the overflow flag and return
     if ((_receive_buffer_tail + 1) % _SS_MAX_RX_BUFF != _receive_buffer_head) 
@@ -577,4 +521,45 @@ int WellyNet::peek()
 
   // Read from "head"
   return _receive_buffer[_receive_buffer_head];
+}
+
+int WellyNet::getPacket(int command[])
+{
+  int bytesBuffered = available();
+  int forMe = 0;
+  //Check if there's anything to read
+  if (bytesBuffered >= 10)
+  {
+    //If there was, read the first byte (should be the destination address)
+    int destination = read();
+    if (_address == destination || _address == 0x00)
+    {
+      forMe = 1;
+      command[0] = destination;
+
+      //For the next 9 bytes
+      for (int i = 1; i < 10; i++)
+      {
+        //Read them out of the primary buffer
+        int readByte = read();
+        //And if it was addressed to us, put it into the command buffer
+        command[i] = readByte;
+      }
+      flush();
+      return(1);
+    }
+    else
+    {
+      /*
+      for (int i = 0; i < 10; i++)
+      {
+        read(); //Discard the byte
+        command[i] = 0x00;
+      }
+      */
+      flush();
+      return(0);
+    }
+  }
+  else { return(0); }
 }
