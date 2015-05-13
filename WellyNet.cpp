@@ -126,6 +126,18 @@ char WellyNet::_receive_buffer[_SS_MAX_RX_BUFF];
 volatile uint8_t WellyNet::_receive_buffer_tail = 0;
 volatile uint8_t WellyNet::_receive_buffer_head = 0;
 
+int checksumCalc(int command[])
+{
+  uint8_t lrc = 0;
+
+  for (int i = 0; i < 9; i++)
+  {
+    lrc = (lrc + command[i]) & 0xFF;
+  }
+  lrc = (((lrc ^ 0xFF) + 1 ) & 0xFF);
+  return(lrc);
+}
+
 //
 // Debugging
 //
@@ -542,7 +554,10 @@ int WellyNet::getPacket(int command[])
         //And if it was addressed to us, put it into the command buffer
         command[i] = readByte;
       }
-      flush(); //This is not a good idea, I will do a proper buffer check & clear up to the next command later...
+      // The flush commands in here are only there because of a spurious byte appearing in the buffer that I am
+      // yet to deal with, flushing the buffer after each read makes the network function at the expense of
+      // potential packet loss, I will fix this later (2015-05-08)
+      flush();
       SREG = oldSREG;
       return(1);
     }
@@ -554,16 +569,4 @@ int WellyNet::getPacket(int command[])
     }
   }
   else { SREG = oldSREG; return(0); }
-}
-
-int WellyNet::checksumCalc(int command[])
-{
-  int lrc = 0;
-
-  for (int i = 0; i < 9; i++)
-  {
-    lrc = (lrc + command[i]) & 0xFF;
-  }
-  lrc = (((lrc ^ 0xFF) + 1 ) & 0xFF);
-  return(lrc);
 }

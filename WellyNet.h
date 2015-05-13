@@ -36,6 +36,8 @@ Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 #define GCC_VERSION (__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
 #endif
 
+int checksumCalc(int command[]);
+
 class WellyNet : public Stream
 {
 private:
@@ -92,7 +94,7 @@ public:
   bool overflow() { bool ret = _buffer_overflow; _buffer_overflow = false; return ret; }
   int peek();
   int getPacket(int command[]);
-  int checksumCalc(int command[]);
+  
 
   virtual size_t write(uint8_t byte);
   virtual int read();
